@@ -1,0 +1,36 @@
+.app {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+}
+
+.card {
+  width: min(680px, 100%);
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.label {
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+code {
+  display: inline-block;
+  margin-bottom: 1rem;
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+}
+
+.success {
+  color: #0f766e;
+}
+
+.error {
+  color: #b91c1c;
+}
