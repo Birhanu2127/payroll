@@ -221,6 +221,8 @@ function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [activeSection, setActiveSection] = useState(menuSections[0].title)
   const [activeItem, setActiveItem] = useState(menuSections[0].items[0])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentView, setCurrentView] = useState('dashboard')
   const [expanded, setExpanded] = useState(() =>
     Object.fromEntries(menuSections.map(({ title }, index) => [title, index === 0])),
   )
@@ -327,6 +329,21 @@ function App() {
     fetchDashboardData()
   }, [currentUser, dashboardEndpoint, token])
 
+  useEffect(() => {
+    const applyHashView = () => {
+      if (window.location.hash === '#/profile') {
+        setCurrentView('profile')
+      } else {
+        setCurrentView('dashboard')
+      }
+    }
+
+    applyHashView()
+    window.addEventListener('hashchange', applyHashView)
+
+    return () => window.removeEventListener('hashchange', applyHashView)
+  }, [])
+
   const handleSectionToggle = (sectionTitle) => {
     setExpanded((current) => ({
       ...current,
@@ -337,6 +354,15 @@ function App() {
   const handleItemSelect = (sectionTitle, itemLabel) => {
     setActiveSection(sectionTitle)
     setActiveItem(itemLabel)
+    setCurrentView('dashboard')
+    window.location.hash = '#/'
+    setMobileOpen(false)
+  }
+
+  const handleOpenProfile = (event) => {
+    event.preventDefault()
+    setCurrentView('profile')
+    window.location.hash = '#/profile'
     setMobileOpen(false)
   }
 
@@ -419,6 +445,38 @@ function App() {
 
   const dashboardOverview = dashboardData?.overview ?? []
   const topStats = dashboardOverview.length > 0 ? dashboardOverview : fallbackOverview
+  const displaySection = currentView === 'profile' ? 'Profile' : activeSection
+  const displayItem = currentView === 'profile' ? 'Logged In Profile' : activeItem
+
+  const filteredMenuSections = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return menuSections
+    }
+
+    return menuSections
+      .map((section) => {
+        const titleMatch = section.title.toLowerCase().includes(normalizedSearch)
+        const filteredItems = section.items.filter((item) =>
+          item.toLowerCase().includes(normalizedSearch),
+        )
+
+        if (titleMatch) {
+          return section
+        }
+
+        if (filteredItems.length > 0) {
+          return {
+            ...section,
+            items: filteredItems,
+          }
+        }
+
+        return null
+      })
+      .filter(Boolean)
+  }, [searchTerm])
 
   const renderDashboardPanel = () => {
     if (dashboardLoading) {
@@ -587,6 +645,36 @@ function App() {
     )
   }
 
+  const renderProfilePanel = () => {
+    if (!currentUser) {
+      return null
+    }
+
+    return (
+      <section className="focus-panel">
+        <h2>Logged In Profile</h2>
+        <div className="profile-grid">
+          <article className="metric-card">
+            <p>Full Name</p>
+            <strong>{currentUser.name}</strong>
+          </article>
+          <article className="metric-card">
+            <p>Email</p>
+            <strong>{currentUser.email}</strong>
+          </article>
+          <article className="metric-card">
+            <p>Role</p>
+            <strong>{currentUser.role}</strong>
+          </article>
+          <article className="metric-card">
+            <p>Access Scope</p>
+            <strong>{currentUser.role === 'superadmin' ? 'Global Admin Access' : 'HR Access'}</strong>
+          </article>
+        </div>
+      </section>
+    )
+  }
+
   if (!authReady) {
     return (
       <main className="auth-shell">
@@ -692,13 +780,10 @@ function App() {
   return (
     <div className="layout">
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
-        <div className="brand">
-          <h2>Payroll Admin</h2>
-          <p>{currentUser.name} ({currentUser.role})</p>
-        </div>
+        <p className="menu-kicker">Navigation</p>
 
         <nav className="menu">
-          {menuSections.map((section) => (
+          {filteredMenuSections.map((section) => (
             <section key={section.title} className="menu-group">
               <button
                 className="menu-group-trigger"
@@ -734,6 +819,10 @@ function App() {
           ))}
         </nav>
 
+        {filteredMenuSections.length === 0 ? (
+          <p className="no-menu-results">No matching menu items found.</p>
+        ) : null}
+
         <button type="button" className="logout" onClick={handleLogout}>
           Logout
         </button>
@@ -747,15 +836,44 @@ function App() {
       />
 
       <main className="content">
-        <header className="topbar">
-          <button type="button" className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
-            Menu
-          </button>
-          <div>
-            <p className="eyebrow">{activeSection}</p>
-            <h1>{activeItem}</h1>
+        <header className="header-bar">
+          <div className="header-left">
+            <button type="button" className="mobile-menu-btn" onClick={() => setMobileOpen(true)}>
+              Menu
+            </button>
+            <button
+              type="button"
+              className="header-logo"
+              onClick={() => window.location.reload()}
+              aria-label="Refresh page"
+            >
+              <span className="header-logo-mark">P</span>
+              <span className="header-logo-word">PAYROLL</span>
+            </button>
           </div>
-          <span className={`status ${apiOnline ? 'ok' : 'offline'}`}>{apiStatus}</span>
+
+          <label className="header-search" aria-label="Search menu">
+            <input
+              type="search"
+              placeholder="Search menu modules..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+            />
+          </label>
+
+          <div className="header-right">
+            <a href="#/profile" className="profile-link" onClick={handleOpenProfile}>
+              Profile: {currentUser.name}
+            </a>
+            <span className={`status ${apiOnline ? 'ok' : 'offline'}`}>{apiStatus}</span>
+          </div>
+        </header>
+
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">{displaySection}</p>
+            <h1>{displayItem}</h1>
+          </div>
         </header>
 
         <section className="stats">
@@ -771,7 +889,9 @@ function App() {
           ))}
         </section>
 
-        {activeSection === 'Dashboard' ? (
+        {currentView === 'profile' ? (
+          renderProfilePanel()
+        ) : activeSection === 'Dashboard' ? (
           renderDashboardPanel()
         ) : (
           <section className="focus-panel">
