@@ -1,12 +1,19 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\EmployeeSalaryController;
+use App\Http\Controllers\Api\FinancialYearController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\SalaryBulkUpdateController;
 use App\Http\Controllers\Api\SalaryGradeController;
 use App\Http\Controllers\Api\SalaryHistoryController;
 use App\Http\Controllers\Api\SalaryTemplateController;
+use App\Http\Controllers\Api\SystemBackupController;
+use App\Http\Controllers\Api\SystemSettingController;
+use App\Http\Controllers\Api\UserAccountController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -138,4 +145,41 @@ Route::middleware('api.token')->group(function (): void {
     Route::get('/salary-histories', [SalaryHistoryController::class, 'index']);
     Route::get('/salary-bulk-updates', [SalaryBulkUpdateController::class, 'index']);
     Route::post('/salary-bulk-updates', [SalaryBulkUpdateController::class, 'store']);
+
+    Route::get('/system-settings', [SystemSettingController::class, 'show']);
+    Route::patch('/system-settings', [SystemSettingController::class, 'update']);
+    Route::put('/system-settings', [SystemSettingController::class, 'update']);
+    Route::post('/system-settings/logo', [SystemSettingController::class, 'uploadLogo']);
+
+    Route::get('/financial-years', [FinancialYearController::class, 'index']);
+    Route::post('/financial-years', [FinancialYearController::class, 'store']);
+    Route::patch('/financial-years/{financialYear}', [FinancialYearController::class, 'update']);
+    Route::put('/financial-years/{financialYear}', [FinancialYearController::class, 'update']);
+    Route::delete('/financial-years/{financialYear}', [FinancialYearController::class, 'destroy']);
+
+    Route::get('/system-backups', [SystemBackupController::class, 'index']);
+    Route::post('/system-backups', [SystemBackupController::class, 'store']);
+    Route::delete('/system-backups/prune', [SystemBackupController::class, 'prune']);
+    Route::post('/system-backups/{systemBackup}/restore', [SystemBackupController::class, 'restore']);
+    Route::get('/system-backups/{systemBackup}/download', [SystemBackupController::class, 'download']);
+    Route::delete('/system-backups/{systemBackup}', [SystemBackupController::class, 'destroy']);
+
+    Route::get('/roles', [RoleController::class, 'index']);
+    Route::post('/roles', [RoleController::class, 'store']);
+    Route::put('/roles/{role}', [RoleController::class, 'update']);
+    Route::patch('/roles/{role}', [RoleController::class, 'update']);
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy']);
+
+    Route::get('/permissions', [PermissionController::class, 'index']);
+    Route::get('/roles/{role}/permissions', [PermissionController::class, 'rolePermissions']);
+    Route::put('/roles/{role}/permissions', [PermissionController::class, 'updateRolePermissions']);
+
+    Route::get('/users', [UserAccountController::class, 'index']);
+    Route::post('/users', [UserAccountController::class, 'store']);
+    Route::put('/users/{user}', [UserAccountController::class, 'update']);
+    Route::patch('/users/{user}', [UserAccountController::class, 'update']);
+    Route::delete('/users/{user}', [UserAccountController::class, 'destroy']);
+    Route::post('/users/{user}/reset-password', [UserAccountController::class, 'resetPassword']);
+
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 });

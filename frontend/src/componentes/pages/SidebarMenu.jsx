@@ -23,7 +23,7 @@ function SidebarMenu({
             >
               <span className="menu-title">
                 <span className="menu-icon">{section.icon}</span>
-                {section.title}
+                <span className="menu-text">{section.title}</span>
               </span>
               <span className="caret">{expanded[section.title] ? '-' : '+'}</span>
             </button>
@@ -54,7 +54,8 @@ function SidebarMenu({
       ) : null}
 
       <button type="button" className="logout" onClick={onLogout}>
-        Logout
+        <span className="logout-icon">LG</span>
+        <span className="logout-text">Logout</span>
       </button>
     </aside>
   )

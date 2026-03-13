@@ -5,8 +5,10 @@ import DashboardPanel from './componentes/pages/DashboardPanel'
 import HeaderBar from './componentes/pages/HeaderBar'
 import ModulePage from './componentes/pages/ModulePage'
 import ProfilePage from './componentes/pages/ProfilePage'
+import RolePermissionPage from './componentes/pages/RolePermissionPage'
 import SalaryStructurePage from './componentes/pages/SalaryStructurePage'
 import SidebarMenu from './componentes/pages/SidebarMenu'
+import SystemSettingsPage from './componentes/pages/SystemSettingsPage'
 import { fallbackOverview, menuSections } from './componentes/pages/menuSections'
 
 const AUTH_STORAGE_KEY = 'payroll_auth_token'
@@ -84,6 +86,32 @@ function App() {
   )
   const salaryBulkUpdatesEndpoint = useMemo(
     () => (apiBaseUrl ? `${apiBaseUrl}/api/salary-bulk-updates` : '/api/salary-bulk-updates'),
+    [apiBaseUrl],
+  )
+  const systemSettingsEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/system-settings` : '/api/system-settings'),
+    [apiBaseUrl],
+  )
+  const systemSettingsLogoEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/system-settings/logo` : '/api/system-settings/logo'),
+    [apiBaseUrl],
+  )
+  const financialYearsEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/financial-years` : '/api/financial-years'),
+    [apiBaseUrl],
+  )
+  const systemBackupsEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/system-backups` : '/api/system-backups'),
+    [apiBaseUrl],
+  )
+  const rolesEndpoint = useMemo(() => (apiBaseUrl ? `${apiBaseUrl}/api/roles` : '/api/roles'), [apiBaseUrl])
+  const permissionsEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/permissions` : '/api/permissions'),
+    [apiBaseUrl],
+  )
+  const usersEndpoint = useMemo(() => (apiBaseUrl ? `${apiBaseUrl}/api/users` : '/api/users'), [apiBaseUrl])
+  const activityLogsEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/activity-logs` : '/api/activity-logs'),
     [apiBaseUrl],
   )
 
@@ -234,16 +262,31 @@ function App() {
   }, [])
 
   const handleSectionToggle = (sectionTitle) => {
-    setExpanded((current) => ({
-      ...current,
-      [sectionTitle]: !current[sectionTitle],
-    }))
+    setExpanded((current) => {
+      const nextState = {}
+      const isOpening = !current[sectionTitle]
+
+      Object.keys(current).forEach((key) => {
+        nextState[key] = false
+      })
+
+      nextState[sectionTitle] = isOpening
+
+      return nextState
+    })
   }
 
   const handleItemSelect = (sectionTitle, itemLabel) => {
     setActiveSection(sectionTitle)
     setActiveItem(itemLabel)
     setCurrentView('dashboard')
+    setExpanded((current) => {
+      const nextState = {}
+      Object.keys(current).forEach((key) => {
+        nextState[key] = key === sectionTitle
+      })
+      return nextState
+    })
     window.location.hash = '#/'
     setMobileOpen(false)
   }
@@ -471,6 +514,24 @@ function App() {
             employeeSalariesEndpoint={employeeSalariesEndpoint}
             salaryHistoriesEndpoint={salaryHistoriesEndpoint}
             salaryBulkUpdatesEndpoint={salaryBulkUpdatesEndpoint}
+          />
+        ) : activeSection === 'System Settings' ? (
+          <SystemSettingsPage
+            activeItem={activeItem}
+            authToken={token}
+            settingsEndpoint={systemSettingsEndpoint}
+            logoEndpoint={systemSettingsLogoEndpoint}
+            financialYearsEndpoint={financialYearsEndpoint}
+            backupsEndpoint={systemBackupsEndpoint}
+          />
+        ) : activeSection === 'Role & Permission Management' ? (
+          <RolePermissionPage
+            activeItem={activeItem}
+            authToken={token}
+            rolesEndpoint={rolesEndpoint}
+            permissionsEndpoint={permissionsEndpoint}
+            usersEndpoint={usersEndpoint}
+            logsEndpoint={activityLogsEndpoint}
           />
         ) : (
           <ModulePage activeItem={activeItem} employeesEndpoint={employeesEndpoint} authToken={token} />

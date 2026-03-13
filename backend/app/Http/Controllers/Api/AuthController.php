@@ -29,6 +29,8 @@ class AuthController extends Controller
         ]);
 
         $plainTextToken = $this->issueToken($user);
+        $user->last_login_at = now();
+        $user->save();
 
         return response()->json([
             'message' => 'Account created successfully.',
@@ -57,7 +59,15 @@ class AuthController extends Controller
             ], 422);
         }
 
+        if ($user->status === 'Inactive') {
+            return response()->json([
+                'message' => 'Your account is inactive. Please contact an administrator.',
+            ], 403);
+        }
+
         $plainTextToken = $this->issueToken($user);
+        $user->last_login_at = now();
+        $user->save();
 
         return response()->json([
             'message' => 'Login successful.',
