@@ -136,6 +136,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null)
 
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [sidebarLocked, setSidebarLocked] = useState(false)
   const [activeSection, setActiveSection] = useState(menuSections[0].title)
   const [activeItem, setActiveItem] = useState(menuSections[0].items[0])
   const [searchTerm, setSearchTerm] = useState('')
@@ -280,6 +281,7 @@ function App() {
     setActiveSection(sectionTitle)
     setActiveItem(itemLabel)
     setCurrentView('dashboard')
+    setSidebarLocked(true)
     setExpanded((current) => {
       const nextState = {}
       Object.keys(current).forEach((key) => {
@@ -432,8 +434,6 @@ function App() {
         authForm={authForm}
         authError={authError}
         authLoading={authLoading}
-        apiStatus={apiStatus}
-        apiOnline={apiOnline}
         onSubmit={handleAuthSubmit}
         onInput={handleAuthInput}
         onToggleMode={handleToggleAuthMode}
@@ -443,35 +443,40 @@ function App() {
 
   return (
     <div className="layout">
-      <SidebarMenu
-        mobileOpen={mobileOpen}
-        filteredMenuSections={filteredMenuSections}
-        expanded={expanded}
-        activeSection={activeSection}
-        activeItem={activeItem}
-        onToggleSection={handleSectionToggle}
-        onSelectItem={handleItemSelect}
+      <HeaderBar
+        apiOnline={apiOnline}
+        apiStatus={apiStatus}
+        currentUser={currentUser}
+        searchTerm={searchTerm}
+        onOpenMenu={() => setMobileOpen(true)}
+        onLogoRefresh={() => window.location.reload()}
+        onOpenProfile={handleOpenProfile}
+        onSearchChange={setSearchTerm}
         onLogout={handleLogout}
       />
 
-      <button
-        type="button"
-        className={`overlay ${mobileOpen ? 'show' : ''}`}
-        aria-label="Close menu"
-        onClick={() => setMobileOpen(false)}
-      />
-
-      <main className="content">
-        <HeaderBar
-          apiOnline={apiOnline}
-          apiStatus={apiStatus}
-          currentUser={currentUser}
-          searchTerm={searchTerm}
-          onOpenMenu={() => setMobileOpen(true)}
-          onLogoRefresh={() => window.location.reload()}
-          onOpenProfile={handleOpenProfile}
-          onSearchChange={setSearchTerm}
+      <div className="layout-body">
+        <SidebarMenu
+          mobileOpen={mobileOpen}
+          collapsed={sidebarLocked}
+          filteredMenuSections={filteredMenuSections}
+          expanded={expanded}
+          activeSection={activeSection}
+          activeItem={activeItem}
+          onToggleSection={handleSectionToggle}
+          onSelectItem={handleItemSelect}
+          onLogout={handleLogout}
+          onReleaseCollapse={() => setSidebarLocked(false)}
         />
+
+        <button
+          type="button"
+          className={`overlay ${mobileOpen ? 'show' : ''}`}
+          aria-label="Close menu"
+          onClick={() => setMobileOpen(false)}
+        />
+
+        <main className="content">
 
         <header className="topbar">
           <div>
@@ -480,18 +485,20 @@ function App() {
           </div>
         </header>
 
-        <section className="stats">
-          {topStats.map((metric) => (
-            <article key={`top-${metric.label}`}>
-              <p>{metric.label}</p>
-              <strong>
-                {metric.label.toLowerCase().includes('payout')
-                  ? moneyFormatter.format(metric.value)
-                  : metric.value}
-              </strong>
-            </article>
-          ))}
-        </section>
+        {currentView !== 'profile' ? (
+          <section className="stats">
+            {topStats.map((metric) => (
+              <article key={`top-${metric.label}`}>
+                <p>{metric.label}</p>
+                <strong>
+                  {metric.label.toLowerCase().includes('payout')
+                    ? moneyFormatter.format(metric.value)
+                    : metric.value}
+                </strong>
+              </article>
+            ))}
+          </section>
+        ) : null}
 
         {currentView === 'profile' ? (
           <ProfilePage currentUser={currentUser} />
@@ -536,7 +543,8 @@ function App() {
         ) : (
           <ModulePage activeItem={activeItem} employeesEndpoint={employeesEndpoint} authToken={token} />
         )}
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

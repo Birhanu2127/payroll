@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 function HeaderBar({
   apiOnline,
   apiStatus,
@@ -7,7 +9,11 @@ function HeaderBar({
   onLogoRefresh,
   onOpenProfile,
   onSearchChange,
+  onLogout,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
   const name = currentUser?.name ?? 'Guest'
   const role = currentUser?.role ?? 'Visitor'
   const initials = name
@@ -24,6 +30,18 @@ function HeaderBar({
     .reduce((sum, char) => sum + char.charCodeAt(0), 0)
     .toString()
   const hueValue = (Number(avatarHue) * 37) % 360
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
 
   return (
     <header className="header-bar">
@@ -47,16 +65,50 @@ function HeaderBar({
       </label>
 
       <div className="header-right">
-        <button type="button" className="profile-chip" onClick={onOpenProfile}>
-          <span className="profile-avatar" style={{ '--avatar-hue': hueValue }}>
-            {initials}
-          </span>
-          <span className="profile-meta">
-            <strong>{name}</strong>
-            <small>{role}</small>
-          </span>
-        </button>
-        <span className={`status ${apiOnline ? 'ok' : 'offline'}`}>{apiStatus}</span>
+        <div className={`profile-dropdown ${menuOpen ? 'open' : ''}`} ref={menuRef}>
+          <button
+            type="button"
+            className="profile-chip"
+            onClick={() => setMenuOpen((current) => !current)}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+          >
+            <span className="profile-avatar" style={{ '--avatar-hue': hueValue }}>
+              {initials}
+            </span>
+            <span className="profile-meta">
+              <strong>{name}</strong>
+              <small>{role}</small>
+            </span>
+            <span className="profile-caret">▾</span>
+          </button>
+          {menuOpen ? (
+            <div className="profile-menu" role="menu">
+              <button
+                type="button"
+                className="profile-menu-item"
+                onClick={(event) => {
+                  onOpenProfile(event)
+                  setMenuOpen(false)
+                }}
+                role="menuitem"
+              >
+                Profile
+              </button>
+              <button
+                type="button"
+                className="profile-menu-item danger"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onLogout?.()
+                }}
+                role="menuitem"
+              >
+                Logout
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
     </header>
   )

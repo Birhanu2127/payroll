@@ -3,8 +3,6 @@ function AuthPage({
   authForm,
   authError,
   authLoading,
-  apiStatus,
-  apiOnline,
   onSubmit,
   onInput,
   onToggleMode,
@@ -74,8 +72,6 @@ function AuthPage({
         <button type="button" className="auth-toggle" onClick={onToggleMode}>
           {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
         </button>
-
-        <p className={`status ${apiOnline ? 'ok' : 'offline'}`}>{apiStatus}</p>
       </section>
     </main>
   )
