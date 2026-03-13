@@ -5,6 +5,7 @@ import DashboardPanel from './componentes/pages/DashboardPanel'
 import HeaderBar from './componentes/pages/HeaderBar'
 import ModulePage from './componentes/pages/ModulePage'
 import ProfilePage from './componentes/pages/ProfilePage'
+import SalaryStructurePage from './componentes/pages/SalaryStructurePage'
 import SidebarMenu from './componentes/pages/SidebarMenu'
 import { fallbackOverview, menuSections } from './componentes/pages/menuSections'
 
@@ -59,6 +60,30 @@ function App() {
   const meEndpoint = useMemo(() => (apiBaseUrl ? `${apiBaseUrl}/api/auth/me` : '/api/auth/me'), [apiBaseUrl])
   const logoutEndpoint = useMemo(
     () => (apiBaseUrl ? `${apiBaseUrl}/api/auth/logout` : '/api/auth/logout'),
+    [apiBaseUrl],
+  )
+  const employeesEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/employees` : '/api/employees'),
+    [apiBaseUrl],
+  )
+  const salaryGradesEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/salary-grades` : '/api/salary-grades'),
+    [apiBaseUrl],
+  )
+  const salaryTemplatesEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/salary-templates` : '/api/salary-templates'),
+    [apiBaseUrl],
+  )
+  const employeeSalariesEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/employee-salaries` : '/api/employee-salaries'),
+    [apiBaseUrl],
+  )
+  const salaryHistoriesEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/salary-histories` : '/api/salary-histories'),
+    [apiBaseUrl],
+  )
+  const salaryBulkUpdatesEndpoint = useMemo(
+    () => (apiBaseUrl ? `${apiBaseUrl}/api/salary-bulk-updates` : '/api/salary-bulk-updates'),
     [apiBaseUrl],
   )
 
@@ -436,8 +461,19 @@ function App() {
             dashboardEndpoint={dashboardEndpoint}
             moneyFormatter={moneyFormatter}
           />
+        ) : activeSection === 'Salary Structure' ? (
+          <SalaryStructurePage
+            activeItem={activeItem}
+            authToken={token}
+            employeesEndpoint={employeesEndpoint}
+            salaryGradesEndpoint={salaryGradesEndpoint}
+            salaryTemplatesEndpoint={salaryTemplatesEndpoint}
+            employeeSalariesEndpoint={employeeSalariesEndpoint}
+            salaryHistoriesEndpoint={salaryHistoriesEndpoint}
+            salaryBulkUpdatesEndpoint={salaryBulkUpdatesEndpoint}
+          />
         ) : (
-          <ModulePage activeItem={activeItem} />
+          <ModulePage activeItem={activeItem} employeesEndpoint={employeesEndpoint} authToken={token} />
         )}
       </main>
     </div>
